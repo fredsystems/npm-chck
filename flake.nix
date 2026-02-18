@@ -88,9 +88,7 @@
         {
           default = pkgs.mkShell {
             packages = [
-              pkgs.npm-check
               pkgs.nodejs
-              pkgs.just
             ];
 
             buildInputs =
