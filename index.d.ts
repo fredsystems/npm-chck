@@ -58,6 +58,6 @@ declare namespace NpmCheck {
   };
 }
 
-declare module "npm-chck" {
+declare module "@fredclausen/npm-chck" {
   export = NpmCheck.default;
 }

@@ -34,7 +34,7 @@ This is the easiest way to use `npm-chck`.
 ### Install
 
 ```bash
-npm install -g npm-chck
+npm install -g @fredclausen/npm-chck
 ```
 
 ### Use
@@ -179,7 +179,7 @@ Enable or disable the spinner. Useful for terminals that don't support them. Aut
 The API is here in case you want to wrap this with your CI toolset.
 
 ```js
-const npmCheck = require("npm-chck");
+const npmCheck = require("@fredclausen/npm-chck");
 
 npmCheck(options).then((currentState) =>
   console.log(currentState.get("packages")),
