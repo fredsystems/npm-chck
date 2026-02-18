@@ -1,12 +1,12 @@
-# npm-check
-
-[![Build Status](https://travis-ci.org/dylang/npm-check.svg?branch=master)](https://travis-ci.org/dylang/npm-check)
-[![NPM version](https://badge.fury.io/js/npm-check.svg)](http://badge.fury.io/js/npm-check)
-[![npm](https://img.shields.io/npm/dm/npm-check.svg?maxAge=2592000)](https://www.npmjs.com/package/npm-check)
+# npm-chck
 
 > Check for outdated, incorrect, and unused dependencies.
 
-<img width="796" alt="npm-check -u" src="https://cloud.githubusercontent.com/assets/51505/9569917/96947fea-4f48-11e5-9783-2d78077256f2.png">
+## Fork Notice
+
+This project is a fork of [npm-check](https://github.com/dylang/npm-check) by Dylan Greene, renamed to `npm-chck` to avoid npm publishing name collisions.
+
+<img width="796" alt="npm-chck -u" src="https://cloud.githubusercontent.com/assets/51505/9569917/96947fea-4f48-11e5-9783-2d78077256f2.png">
 
 ## Features
 
@@ -29,21 +29,21 @@
 
 ### On the command line
 
-This is the easiest way to use `npm-check`.
+This is the easiest way to use `npm-chck`.
 
 ### Install
 
 ```bash
-npm install -g npm-check
+npm install -g npm-chck
 ```
 
 ### Use
 
 ```bash
-npm-check
+npm-chck
 ```
 
-<img width="882" alt="npm-check" src="https://cloud.githubusercontent.com/assets/51505/9569919/99c2412a-4f48-11e5-8c65-e9b6530ee991.png">
+<img width="882" alt="npm-chck" src="https://cloud.githubusercontent.com/assets/51505/9569919/99c2412a-4f48-11e5-8c65-e9b6530ee991.png">
 
 The result should look like the screenshot, or something nice when your packages are all up-to-date and in use.
 
@@ -53,7 +53,7 @@ When updates are required it will return a non-zero response code that you can u
 
 ```text
 Usage
-  $ npm-check <path> <options>
+  $ npm-chck <path> <options>
 
 Path
   Where to check. Defaults to current directory. Use -g for checking global modules.
@@ -73,12 +73,12 @@ Options
   --debug               Show debug output. Throw in a gist when creating issues on github.
 
 Examples
-  $ npm-check           # See what can be updated, what isn't being used.
-  $ npm-check ../foo    # Check another path.
-  $ npm-check -gu       # Update globally installed modules by picking which ones to upgrade.
+  $ npm-chck           # See what can be updated, what isn't being used.
+  $ npm-chck ../foo    # Check another path.
+  $ npm-chck -gu       # Update globally installed modules by picking which ones to upgrade.
 ```
 
-![npm-check-u](https://cloud.githubusercontent.com/assets/51505/9569912/8c600cd8-4f48-11e5-8757-9387a7a21316.gif)
+![npm-chck-u](https://cloud.githubusercontent.com/assets/51505/9569912/8c600cd8-4f48-11e5-8757-9387a7a21316.gif)
 
 #### `-u, --update`
 
@@ -86,30 +86,30 @@ Show an interactive UI for choosing which modules to update.
 
 Automatically updates versions referenced in the `package.json`.
 
-_Based on recommendations from the `npm` team, `npm-check` only updates using `npm install`, not `npm update`.
-To avoid using more than one version of `npm` in one directory, `npm-check` will automatically install updated modules
+_Based on recommendations from the `npm` team, `npm-chck` only updates using `npm install`, not `npm update`.
+To avoid using more than one version of `npm` in one directory, `npm-chck` will automatically install updated modules
 using the version of `npm` installed globally._
 
-<img width="669" alt="npm-check -g -u" src="https://cloud.githubusercontent.com/assets/51505/9569921/9ca3aeb0-4f48-11e5-95ab-6fdb88124007.png">
+<img width="669" alt="npm-chck -g -u" src="https://cloud.githubusercontent.com/assets/51505/9569921/9ca3aeb0-4f48-11e5-95ab-6fdb88124007.png">
 
 ##### Update using [ied](https://github.com/alexanderGugel/ied) or [pnpm](https://github.com/rstacruz/pnpm)
 
 Set environment variable `NPM_CHECK_INSTALLER` to the name of the installer you wish to use.
 
 ```bash
-NPM_CHECK_INSTALLER=pnpm npm-check -u
+NPM_CHECK_INSTALLER=pnpm npm-chck -u
 ## pnpm install --save-dev foo@version --color=always
 ```
 
 You can also use this for dry-run testing:
 
 ```bash
-NPM_CHECK_INSTALLER=echo npm-check -u
+NPM_CHECK_INSTALLER=echo npm-chck -u
 ```
 
 #### `-y, --update-all`
 
-Updates your dependencies like `--update`, just without any prompt. This is especially useful if you want to automate your dependency updates with `npm-check`.
+Updates your dependencies like `--update`, just without any prompt. This is especially useful if you want to automate your dependency updates with `npm-chck`.
 
 #### `-g, --global`
 
@@ -117,11 +117,11 @@ Check the versions of your globally installed packages.
 
 If the value of `process.env.NODE_PATH` is set, it will override the default path of global node_modules returned by package [`global-modules`](https://www.npmjs.com/package/global-modules).
 
-_Tip: Use `npm-check -u -g` to do a safe interactive update of global modules, including npm itself._
+_Tip: Use `npm-chck -u -g` to do a safe interactive update of global modules, including npm itself._
 
 #### `-s, --skip-unused`
 
-By default `npm-check` will let you know if any of your modules are not being used by looking at `require` statements
+By default `npm-chck` will let you know if any of your modules are not being used by looking at `require` statements
 in your code.
 
 This option will skip that check.
@@ -130,7 +130,7 @@ This is enabled by default when using `global` or `update`.
 
 #### `-p, --production`
 
-By default `npm-check` will look at packages listed as `dependencies` and `devDependencies`.
+By default `npm-chck` will look at packages listed as `dependencies` and `devDependencies`.
 
 This option will let it ignore outdated and unused checks for packages listed as `devDependencies`.
 
@@ -144,7 +144,7 @@ This option will let it ignore outdated and unused checks for packages listed as
 
 Ignore dependencies that match specified glob.
 
-`$ npm-check -i babel-*` will ignore all dependencies starting with 'babel-'.
+`$ npm-chck -i babel-*` will ignore all dependencies starting with 'babel-'.
 
 #### `-E, --save-exact`
 
@@ -156,7 +156,7 @@ Applies to both `dependencies` and `devDependencies`.
 
 Check special (e.g. config) files when looking for unused dependencies.
 
-`$ npm-check --specials=bin,webpack` will look in the `scripts` section of package.json and in webpack config.
+`$ npm-chck --specials=bin,webpack` will look in the `scripts` section of package.json and in webpack config.
 
 See [https://github.com/depcheck/depcheck#special](https://github.com/depcheck/depcheck#special) for more information.
 
@@ -164,7 +164,7 @@ See [https://github.com/depcheck/depcheck#special](https://github.com/depcheck/d
 
 Enable or disable color support.
 
-By default `npm-check` uses colors if they are available.
+By default `npm-chck` uses colors if they are available.
 
 #### `--emoji, --no-emoji`
 
@@ -179,7 +179,7 @@ Enable or disable the spinner. Useful for terminals that don't support them. Aut
 The API is here in case you want to wrap this with your CI toolset.
 
 ```js
-const npmCheck = require("npm-check");
+const npmCheck = require("npm-chck");
 
 npmCheck(options).then((currentState) =>
   console.log(currentState.get("packages")),
@@ -230,7 +230,7 @@ npmCheck(options).then((currentState) =>
 
 #### `cwd`
 
-- Override where `npm-check` checks.
+- Override where `npm-chck` checks.
 - default is `process.cwd()`
 
 #### `specials`
@@ -288,34 +288,12 @@ depcheck:
 - [npm outdated](https://docs.npmjs.com/cli/v7/commands/npm-outdated) - awkward output, requires --depth=0 to be grokable.
 - [david](https://github.com/alanshaw/david) - does not work with private registries.
 - [update-notifier](https://github.com/yeoman/update-notifier) - for single modules, not everything in package.json.
-- [depcheck](https://github.com/depcheck/depcheck) - only part of the puzzle. npm-check uses depcheck.
-
-### About the Author
-
-Hi! Thanks for checking out this project! My name is **Dylan Greene**. When not overwhelmed with my two young kids I enjoy contributing
-to the open source community. I'm also a tech lead at [Opower](https://opower.com/). [![@dylang](https://img.shields.io/badge/github-dylang-green.svg)](https://github.com/dylang) [![@dylang](https://img.shields.io/badge/twitter-dylang-blue.svg)](https://twitter.com/dylang)
-
-Here's some of my other Node projects:
-
-| Name                                                           | Description                                                                                                                                                                  | npm&nbsp;Downloads                                                                                                                       |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [`grunt‑notify`](https://github.com/dylang/grunt-notify)       | Automatic desktop notifications for Grunt errors and warnings. Supports OS X, Windows, Linux.                                                                                | [![grunt-notify](https://img.shields.io/npm/dm/grunt-notify.svg?style=flat-square)](https://www.npmjs.org/package/grunt-notify)          |
-| [`shortid`](https://github.com/dylang/shortid)                 | Amazingly short non-sequential url-friendly unique id generator.                                                                                                             | [![shortid](https://img.shields.io/npm/dm/shortid.svg?style=flat-square)](https://www.npmjs.org/package/shortid)                         |
-| [`space‑hogs`](https://github.com/dylang/space-hogs)           | Discover surprisingly large directories from the command line.                                                                                                               | [![space-hogs](https://img.shields.io/npm/dm/space-hogs.svg?style=flat-square)](https://www.npmjs.org/package/space-hogs)                |
-| [`rss`](https://github.com/dylang/node-rss)                    | RSS feed generator. Add RSS feeds to any project. Supports enclosures and GeoRSS.                                                                                            | [![rss](https://img.shields.io/npm/dm/rss.svg?style=flat-square)](https://www.npmjs.org/package/rss)                                     |
-| [`grunt‑prompt`](https://github.com/dylang/grunt-prompt)       | Interactive prompt for your Grunt config using console checkboxes, text input with filtering, password fields.                                                               | [![grunt-prompt](https://img.shields.io/npm/dm/grunt-prompt.svg?style=flat-square)](https://www.npmjs.org/package/grunt-prompt)          |
-| [`xml`](https://github.com/dylang/node-xml)                    | Fast and simple xml generator. Supports attributes, CDATA, etc. Includes tests and examples.                                                                                 | [![xml](https://img.shields.io/npm/dm/xml.svg?style=flat-square)](https://www.npmjs.org/package/xml)                                     |
-| [`changelog`](https://github.com/dylang/changelog)             | Command line tool (and Node module) that generates a changelog in color output, markdown, or json for modules in npmjs.org's registry as well as any public github.com repo. | [![changelog](https://img.shields.io/npm/dm/changelog.svg?style=flat-square)](https://www.npmjs.org/package/changelog)                   |
-| [`grunt‑attention`](https://github.com/dylang/grunt-attention) | Display attention-grabbing messages in the terminal                                                                                                                          | [![grunt-attention](https://img.shields.io/npm/dm/grunt-attention.svg?style=flat-square)](https://www.npmjs.org/package/grunt-attention) |
-| [`observatory`](https://github.com/dylang/observatory)         | Beautiful UI for showing tasks running on the command line.                                                                                                                  | [![observatory](https://img.shields.io/npm/dm/observatory.svg?style=flat-square)](https://www.npmjs.org/package/observatory)             |
-| [`anthology`](https://github.com/dylang/anthology)             | Module information and stats for any @npmjs user                                                                                                                             | [![anthology](https://img.shields.io/npm/dm/anthology.svg?style=flat-square)](https://www.npmjs.org/package/anthology)                   |
-| [`grunt‑cat`](https://github.com/dylang/grunt-cat)             | Echo a file to the terminal. Works with text, figlets, ascii art, and full-color ansi.                                                                                       | [![grunt-cat](https://img.shields.io/npm/dm/grunt-cat.svg?style=flat-square)](https://www.npmjs.org/package/grunt-cat)                   |
-
-_This list was generated using [anthology](https://github.com/dylang/anthology)._
+- [depcheck](https://github.com/depcheck/depcheck) - only part of the puzzle. npm-chck uses depcheck.
 
 ### License
 
 Copyright (c) 2016 Dylan Greene, contributors.
+Copyright (c) 2026 Fred Clausen, contributors.
 
 Released under the [MIT license](https://tldrlegal.com/license/mit-license).
 
