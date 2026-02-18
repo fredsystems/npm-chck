@@ -1,0 +1,95 @@
+{
+  "name": "npm-check",
+  "version": "7.0.0",
+  "description": "Check for outdated, incorrect, and unused dependencies.",
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "types": "./index.d.ts",
+  "typings": "./index.d.ts",
+  "scripts": {
+    "lint": "xo ./lib/*.js",
+    "test": "npm run lint && ./bin/cli.js || echo Exit Status: $?.",
+    "prepare": "echo 'No build step required'"
+  },
+  "xo": {
+    "space": 4,
+    "rules": {
+      "no-warning-comments": [
+        0
+      ],
+      "global-require": [
+        0
+      ]
+    }
+  },
+  "bin": {
+    "npm-check": "bin/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dylang/npm-check.git"
+  },
+  "keywords": [
+    "npm",
+    "outdated",
+    "dependencies",
+    "unused",
+    "changelog",
+    "check",
+    "updates",
+    "api",
+    "interactive",
+    "cli",
+    "safe",
+    "updating",
+    "updater",
+    "installer",
+    "devDependencies"
+  ],
+  "author": {
+    "name": "Dylan Greene",
+    "email": "dylang@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dylang/npm-check/issues"
+  },
+  "homepage": "https://github.com/dylang/npm-check",
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "dependencies": {
+    "callsite-record": "4.1.5",
+    "chalk": "5.6.2",
+    "depcheck": "1.4.7",
+    "execa": "9.6.1",
+    "giturl": "2.0.0",
+    "global-modules": "2.0.0",
+    "globby": "16.1.1",
+    "inquirer": "13.2.5",
+    "is-ci": "4.1.0",
+    "lodash": "4.17.23",
+    "meow": "14.0.0",
+    "minimatch": "10.2.1",
+    "node-emoji": "2.2.0",
+    "ora": "9.3.0",
+    "package-json": "10.0.1",
+    "path-exists": "5.0.0",
+    "pkg-dir": "8.0.0",
+    "preferred-pm": "4.1.1",
+    "rc-config-loader": "4.1.3",
+    "semver": "7.7.4",
+    "semver-diff": "4.0.0",
+    "strip-ansi": "7.1.2",
+    "text-table": "0.2.0",
+    "throat": "6.0.2",
+    "update-notifier": "7.3.1"
+  },
+  "devDependencies": {
+    "xo": "1.2.3"
+  }
+}
