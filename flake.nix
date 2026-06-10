@@ -37,7 +37,7 @@
 
             src = ./.;
 
-            npmDepsHash = "sha256-ArGdx5q2o6PVcMPUoN58iQJTxNim6apcYdR5y9PbzwU=";
+            npmDepsHash = "sha256-JsUjQ1A/63GWwfruAlwNmBy325rfH0DpP346d6cTEtw=";
 
             # No build step needed for this package
             npmBuildScript = "prepare";
@@ -91,7 +91,7 @@
               enabledPackages
               ++ (with pkgs; [
                 nodejs
-                nodePackages.typescript
+                typescript
               ]);
 
             shellHook = ''
