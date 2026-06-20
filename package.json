@@ -10,20 +10,12 @@
   "types": "./index.d.ts",
   "typings": "./index.d.ts",
   "scripts": {
-    "lint": "xo ./lib/*.js",
-    "test": "npm run lint && ./bin/cli.js || echo Exit Status: $?.",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test": "npm run test:unit && ./bin/cli.js || echo Exit Status: $?.",
     "prepare": "echo 'No build step required'"
-  },
-  "xo": {
-    "space": 4,
-    "rules": {
-      "no-warning-comments": [
-        0
-      ],
-      "global-require": [
-        0
-      ]
-    }
   },
   "bin": {
     "npm-chck": "bin/cli.js"
@@ -90,6 +82,6 @@
     "update-notifier": "7.3.1"
   },
   "devDependencies": {
-    "xo": "2.0.2"
+    "vitest": "4.1.9"
   }
 }
