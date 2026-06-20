@@ -1,0 +1,190 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # =====================================================================
+  # Flake npmDepsHash auto-sync (Renovate PRs only)
+  #
+  # When Renovate bumps an npm dependency it rewrites package.json and
+  # package-lock.json, which invalidates the hardcoded `npmDepsHash` in
+  # flake.nix. The hosted Renovate bot has no Nix and cannot recompute
+  # it, so the flake build would break on merge.
+  #
+  # This job recomputes the hash with `prefetch-npm-deps` and, if it
+  # drifted, writes it into flake.nix and pushes the fix back onto the
+  # PR branch BEFORE the flake-build gate is evaluated. The push uses a
+  # PAT so it re-triggers CI (a GITHUB_TOKEN push would be suppressed as
+  # a recursion guard and the build would never re-run against the fix).
+  #
+  # No `paths:` filter on the trigger: this is a required check, and a
+  # paths filter would leave it stuck as "Expected" on PRs that don't
+  # touch the lockfile. Cheap no-op behavior is enforced inside the job.
+  # =====================================================================
+  flake-sync:
+    name: Sync flake npmDepsHash
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Only Renovate's own PRs. Skipping non-renovate events (incl. our
+    # own follow-up push authored by github[bot]) avoids push loops and
+    # is recorded by GitHub as a passing required check.
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]' }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          # PAT (not GITHUB_TOKEN) so the resulting push re-triggers CI.
+          token: ${{ secrets.PAT }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          persist-credentials: true
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+        with:
+          extra-conf: accept-flake-config = true
+
+      - name: Recompute and sync npmDepsHash
+        run: |
+          new_hash="$(nix run nixpkgs#prefetch-npm-deps -- package-lock.json)"
+          echo "Computed npmDepsHash: ${new_hash}"
+
+          current_hash="$(sed -n 's/.*npmDepsHash = "\(.*\)";/\1/p' flake.nix)"
+          echo "Current  npmDepsHash: ${current_hash}"
+
+          if [ "${new_hash}" = "${current_hash}" ]; then
+            echo "npmDepsHash already in sync; nothing to do."
+            exit 0
+          fi
+
+          # Use a |-delimited sed expression because the hash contains '/'.
+          sed -i "s|npmDepsHash = \".*\";|npmDepsHash = \"${new_hash}\";|" flake.nix
+
+          git config user.email "noreply@github.com"
+          git config user.name "github[bot]"
+          git add flake.nix
+          git commit -m "chore(flake): sync npmDepsHash after dependency update"
+          git push
+
+  # =====================================================================
+  # Pre-commit hooks (biome, whitespace, large-file checks, ...)
+  #
+  # Build the flake's pre-commit-check derivation directly rather than
+  # entering the dev shell, so CI runs exactly the hooks that fire on a
+  # local `git commit`.
+  # =====================================================================
+  lint:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+        with:
+          extra-conf: accept-flake-config = true
+
+      - name: Run flake pre-commit hooks
+        run: nix build --no-link --print-build-logs .#checks.x86_64-linux.pre-commit-check
+
+  # =====================================================================
+  # Flake package build — validates that npmDepsHash matches the current
+  # lockfile and that the package builds. This is the gate that catches a
+  # stale hash; on a Renovate PR it goes green only after flake-sync has
+  # pushed the corrected hash and CI re-runs.
+  #
+  # NOTE: on the FIRST CI run of a Renovate PR this job may fail with a
+  # hash mismatch while flake-sync is still pushing the fix. That run is
+  # superseded by the run the push triggers, whose flake-build passes.
+  # Renovate's automerge evaluates the latest run's checks, so the
+  # transient first-run failure does not block the merge.
+  # =====================================================================
+  flake-build:
+    name: Flake build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+        with:
+          extra-conf: accept-flake-config = true
+
+      - name: Build the flake package
+        run: nix build --no-link --print-build-logs .#packages.x86_64-linux.npm-chck
+
+  # =====================================================================
+  # Test suite: vitest unit + end-to-end tests, plus the CLI self-check.
+  # =====================================================================
+  test:
+    name: Test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["24"]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit and end-to-end tests
+        run: npm run test:unit
+
+      - name: CLI self-check
+        run: ./bin/cli.js .
+
+  # =====================================================================
+  # Required check summary — one status to gate merges / auto-merge on.
+  # =====================================================================
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [flake-sync, lint, flake-build, test]
+    if: ${{ always() }}
+    steps:
+      - name: Evaluate summary
+        run: |
+          sync_result="${{ needs.flake-sync.result }}"
+          lint_result="${{ needs.lint.result }}"
+          build_result="${{ needs.flake-build.result }}"
+          test_result="${{ needs.test.result }}"
+
+          echo "flake-sync:  ${sync_result}"
+          echo "lint:        ${lint_result}"
+          echo "flake-build: ${build_result}"
+          echo "test:        ${test_result}"
+
+          # flake-sync is allowed to be 'skipped' (non-renovate PRs) or
+          # 'success'. Any other result is a failure.
+          if [ "${sync_result}" != "success" ] && [ "${sync_result}" != "skipped" ]; then
+            echo "flake-sync failed."
+            exit 1
+          fi
+
+          for result in "${lint_result}" "${build_result}" "${test_result}"; do
+            if [ "${result}" != "success" ]; then
+              echo "CI failed."
+              exit 1
+            fi
+          done
+
+          echo "CI succeeded."
