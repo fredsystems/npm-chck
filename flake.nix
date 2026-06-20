@@ -37,7 +37,7 @@
 
             src = ./.;
 
-            npmDepsHash = "sha256-pKOVlnDUvOmieRO03nfz6Dks1TcVxLe8jMTihFYJo8c=";
+            npmDepsHash = "sha256-ar5R3PnF+8YsEZttYVcD9eYh9mucWOrWGCdB/bLxS4Y=";
 
             # No build step needed for this package
             npmBuildScript = "prepare";
@@ -85,6 +85,9 @@
           default = pkgs.mkShell {
             packages = [
               pkgs.nodejs
+              # The flake-built npm-chck itself, so it can be run against this
+              # repo's own package.json from inside the dev shell.
+              self.packages.${system}.npm-chck
             ];
 
             buildInputs =
