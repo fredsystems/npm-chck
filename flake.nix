@@ -33,11 +33,11 @@
         {
           npm-chck = pkgs.buildNpmPackage {
             pname = "npm-chck";
-            version = "7.0.0";
+            version = "7.0.1";
 
             src = ./.;
 
-            npmDepsHash = "sha256-JsUjQ1A/63GWwfruAlwNmBy325rfH0DpP346d6cTEtw=";
+            npmDepsHash = "sha256-pKOVlnDUvOmieRO03nfz6Dks1TcVxLe8jMTihFYJo8c=";
 
             # No build step needed for this package
             npmBuildScript = "prepare";
