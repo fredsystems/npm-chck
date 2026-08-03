@@ -15,6 +15,38 @@ describe("versionRange", () => {
     it("returns the exact version when saveExact is true", () => {
         expect(versionRange("1.2.3", true)).toBe("1.2.3");
     });
+
+    // Regression: a repo that pins every dependency exactly (very common under
+    // Renovate) had its pins silently converted to caret ranges on update.
+    it("keeps an exact pin exact", () => {
+        expect(versionRange("1.2.3", false, "1.2.2")).toBe("1.2.3");
+    });
+
+    it("keeps an explicit '=' pin exact", () => {
+        expect(versionRange("1.2.3", false, "=1.2.2")).toBe("1.2.3");
+    });
+
+    it("keeps a tilde range a tilde range", () => {
+        expect(versionRange("1.2.3", false, "~1.2.2")).toBe("~1.2.3");
+    });
+
+    it("keeps a caret range a caret range", () => {
+        expect(versionRange("1.2.3", false, "^1.2.2")).toBe("^1.2.3");
+    });
+
+    it("falls back to a caret range for ranges it cannot classify", () => {
+        expect(versionRange("1.2.3", false, ">=1.0.0 <2.0.0")).toBe("^1.2.3");
+        expect(versionRange("1.2.3", false, "*")).toBe("^1.2.3");
+        expect(versionRange("1.2.3", false, undefined)).toBe("^1.2.3");
+    });
+
+    it("still honours saveExact over the existing range", () => {
+        expect(versionRange("1.2.3", true, "^1.2.2")).toBe("1.2.3");
+    });
+
+    it("ignores surrounding whitespace in the existing range", () => {
+        expect(versionRange("1.2.3", false, " 1.2.2 ")).toBe("1.2.3");
+    });
 });
 
 describe("applyUpdatesToPackageJson", () => {
@@ -34,6 +66,75 @@ describe("applyUpdatesToPackageJson", () => {
 
     afterEach(() => {
         rmSync(dir, { recursive: true, force: true });
+    });
+
+    it("keeps an exactly pinned dependency exactly pinned", () => {
+        writePkg(
+            JSON.stringify(
+                { name: "a", dependencies: { lodash: "4.17.20" } },
+                null,
+                4,
+            ) + "\n",
+        );
+
+        const written = applyUpdatesToPackageJson(
+            dir,
+            [{ moduleName: "lodash", latest: "4.18.1", devDependency: false }],
+            false,
+        );
+
+        expect(written).toEqual(["lodash@4.18.1"]);
+        const pkg = JSON.parse(readPkg());
+        expect(pkg.dependencies.lodash).toBe("4.18.1");
+    });
+
+    it("keeps a tilde-ranged dependency on a tilde range", () => {
+        writePkg(
+            JSON.stringify(
+                { name: "a", devDependencies: { semver: "~7.5.0" } },
+                null,
+                4,
+            ) + "\n",
+        );
+
+        applyUpdatesToPackageJson(
+            dir,
+            [{ moduleName: "semver", latest: "7.8.5", devDependency: true }],
+            false,
+        );
+
+        const pkg = JSON.parse(readPkg());
+        expect(pkg.devDependencies.semver).toBe("~7.8.5");
+    });
+
+    it("preserves each dependency's own range style in a single pass", () => {
+        writePkg(
+            JSON.stringify(
+                {
+                    name: "a",
+                    dependencies: { lodash: "4.17.20", semver: "^7.5.0" },
+                },
+                null,
+                4,
+            ) + "\n",
+        );
+
+        applyUpdatesToPackageJson(
+            dir,
+            [
+                {
+                    moduleName: "lodash",
+                    latest: "4.18.1",
+                    devDependency: false,
+                },
+                { moduleName: "semver", latest: "7.8.5", devDependency: false },
+            ],
+            false,
+        );
+
+        const pkg = JSON.parse(readPkg());
+        expect(pkg.dependencies.lodash).toBe("4.18.1");
+        expect(pkg.dependencies.semver).toBe("^7.8.5");
     });
 
     it("updates a regular dependency to a caret range", () => {

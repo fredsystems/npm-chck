@@ -48,8 +48,11 @@ describe("workspace update end-to-end", () => {
         });
 
         // lodash is shared across BOTH members and intentionally pinned to an
-        // old exact version so an update is detected. This is the scenario
-        // that used to fail because installs ran one workspace at a time.
+        // old version so an update is detected. This is the scenario that used
+        // to fail because installs ran one workspace at a time.
+        //
+        // Member `a` pins exactly and member `b` uses a caret range, so a
+        // single run asserts that each member keeps its own pinning style.
         writeJson("packages/a/package.json", {
             name: "@e2e/a",
             version: "1.0.0",
@@ -58,7 +61,7 @@ describe("workspace update end-to-end", () => {
         writeJson("packages/b/package.json", {
             name: "@e2e/b",
             version: "1.0.0",
-            dependencies: { lodash: "4.17.20" },
+            dependencies: { lodash: "^4.17.20" },
         });
 
         await execa("npm", ["install"], { cwd: root });
@@ -78,10 +81,11 @@ describe("workspace update end-to-end", () => {
 
         const output = result.stdout + "\n" + result.stderr;
 
-        // The shared lodash dependency must be bumped in BOTH members.
+        // The shared lodash dependency must be bumped in BOTH members, each
+        // keeping the range style it started with.
         const a = readJson("packages/a/package.json");
         const b = readJson("packages/b/package.json");
-        expect(a.dependencies.lodash).toBe("^4.18.1");
+        expect(a.dependencies.lodash).toBe("4.18.1");
         expect(b.dependencies.lodash).toBe("^4.18.1");
 
         // The install must run exactly once, from the workspace root.
