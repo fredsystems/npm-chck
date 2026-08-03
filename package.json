@@ -58,7 +58,7 @@
     "callsite-record": "4.1.5",
     "chalk": "6.0.0",
     "depcheck": "1.4.7",
-    "execa": "10.0.0",
+    "execa": "10.0.1",
     "giturl": "2.0.0",
     "global-modules": "2.0.0",
     "globby": "16.2.2",
