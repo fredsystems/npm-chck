@@ -67,6 +67,8 @@ Options
   -d, --dev-only        Look at devDependencies only (skip dependencies).
   -i, --ignore          Ignore dependencies based on succeeding glob.
   -E, --save-exact      Save exact version (x.y.z) instead of caret (^x.y.z) in package.json.
+  -w, --workspaces      Check all workspace packages (auto-detected for workspace roots).
+  --no-workspaces       Disable workspace auto-detection (e.g. to check only the root package).
   --specials            List of depcheck specials to include in check for unused dependencies.
   --no-color            Force or disable color output.
   --no-emoji            Remove emoji support. No emoji in default in CI environments.
@@ -76,6 +78,8 @@ Examples
   $ npm-chck           # See what can be updated, what isn't being used.
   $ npm-chck ../foo    # Check another path.
   $ npm-chck -gu       # Update globally installed modules by picking which ones to upgrade.
+  $ npm-chck -w        # Check all workspace packages in a monorepo.
+  $ npm-chck -wu       # Interactively update workspace packages.
 ```
 
 ![npm-chck-u](https://cloud.githubusercontent.com/assets/51505/9569912/8c600cd8-4f48-11e5-8757-9387a7a21316.gif)
@@ -151,6 +155,32 @@ Ignore dependencies that match specified glob.
 Install packages using `--save-exact`, meaning exact versions will be saved in package.json.
 
 Applies to both `dependencies` and `devDependencies`.
+
+Note that in workspace mode, where `npm-chck` writes the `package.json` files itself, the range style already used
+by each entry is preserved: an exact pin such as `"react": "19.2.7"` becomes `"react": "19.2.8"`, and `~1.2.3` stays a
+tilde range. Use `-E` to force exact pins everywhere.
+
+#### `-w, --workspaces` / `--no-workspaces`
+
+Check (and update) every package in an npm, yarn, or pnpm monorepo.
+
+Workspace mode is detected automatically for any directory that declares a workspace configuration — a `workspaces`
+array (or `workspaces.packages` object) in `package.json`, or a `packages` list in `pnpm-workspace.yaml`. Pass `-w` to
+force it, or `--no-workspaces` to check only the package in the target directory.
+
+The workspace root is checked alongside its members whenever it has dependencies of its own, so root-level tooling
+does not get skipped. Dependencies on sibling packages within the same workspace are ignored, since they resolve to
+local symlinks rather than to a published package.
+
+In update mode (`-u` or `-y`) every workspace is inspected first, the selections are gathered across the whole
+monorepo, and then a _single_ install runs from the workspace root. That way a dependency shared by several members is
+bumped to one consistent version instead of each member's install fighting over the hoisted tree.
+
+```bash
+npm-chck            # in a monorepo root: checks the root and every member
+npm-chck -wu        # interactively update the whole monorepo, then one install
+npm-chck --no-workspaces  # check only the root package
+```
 
 #### `--specials`
 

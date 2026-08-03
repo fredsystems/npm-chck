@@ -40,7 +40,7 @@ jobs:
     # is recorded by GitHub as a passing required check.
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]' }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # PAT (not GITHUB_TOKEN) so the resulting push re-triggers CI.
           token: ${{ secrets.PAT }}
@@ -85,7 +85,7 @@ jobs:
     name: Pre-commit hooks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -112,7 +112,7 @@ jobs:
     name: Flake build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -134,11 +134,11 @@ jobs:
       matrix:
         node: ["24"]
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -149,8 +149,44 @@ jobs:
       - name: Run unit and end-to-end tests
         run: npm run test:unit
 
+      # ===================================================================
+      # CLI self-check — dogfood npm-chck on its own repository.
+      #
+      # `npm-chck` exits 1 whenever it has something to report, which is its
+      # whole point as a CLI but makes it useless as a bare CI gate: the
+      # repository is by definition out of date while any dependency-bump PR
+      # is open, so `run: ./bin/cli.js .` turned every single Renovate PR red
+      # regardless of whether the change was good.
+      #
+      # What we actually want to gate on is "the CLI runs end to end without
+      # crashing". So: `--version` proves the module graph loads, and the real
+      # run must reach its own summary line. Outdated dependencies are
+      # reported in the log and left alone; a crash, an unhandled rejection or
+      # a non-zero exit other than the informational 1 still fails the job.
+      # ===================================================================
+      - name: CLI smoke test
+        run: ./bin/cli.js --version
+
       - name: CLI self-check
-        run: ./bin/cli.js .
+        run: |
+          set -o pipefail
+          log="${RUNNER_TEMP}/cli-self-check.log"
+          status=0
+          ./bin/cli.js . 2>&1 | tee "${log}" || status=$?
+
+          if [ "${status}" -gt 1 ]; then
+            echo "::error::npm-chck exited with ${status} (expected 0, or 1 for 'updates available')."
+            exit 1
+          fi
+
+          if ! grep -qE 'Use npm-chck .* for interactive update|look .*amazing' "${log}"; then
+            echo "::error::npm-chck did not reach its summary output; treating as a crash."
+            exit 1
+          fi
+
+          if [ "${status}" -eq 1 ]; then
+            echo "::notice::npm-chck reports available updates (see log). Not a CI failure."
+          fi
 
   # =====================================================================
   # Required check summary — one status to gate merges / auto-merge on.
