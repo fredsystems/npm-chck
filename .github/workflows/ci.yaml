@@ -149,8 +149,44 @@ jobs:
       - name: Run unit and end-to-end tests
         run: npm run test:unit
 
+      # ===================================================================
+      # CLI self-check — dogfood npm-chck on its own repository.
+      #
+      # `npm-chck` exits 1 whenever it has something to report, which is its
+      # whole point as a CLI but makes it useless as a bare CI gate: the
+      # repository is by definition out of date while any dependency-bump PR
+      # is open, so `run: ./bin/cli.js .` turned every single Renovate PR red
+      # regardless of whether the change was good.
+      #
+      # What we actually want to gate on is "the CLI runs end to end without
+      # crashing". So: `--version` proves the module graph loads, and the real
+      # run must reach its own summary line. Outdated dependencies are
+      # reported in the log and left alone; a crash, an unhandled rejection or
+      # a non-zero exit other than the informational 1 still fails the job.
+      # ===================================================================
+      - name: CLI smoke test
+        run: ./bin/cli.js --version
+
       - name: CLI self-check
-        run: ./bin/cli.js .
+        run: |
+          set -o pipefail
+          log="${RUNNER_TEMP}/cli-self-check.log"
+          status=0
+          ./bin/cli.js . 2>&1 | tee "${log}" || status=$?
+
+          if [ "${status}" -gt 1 ]; then
+            echo "::error::npm-chck exited with ${status} (expected 0, or 1 for 'updates available')."
+            exit 1
+          fi
+
+          if ! grep -qE 'Use npm-chck .* for interactive update|look .*amazing' "${log}"; then
+            echo "::error::npm-chck did not reach its summary output; treating as a crash."
+            exit 1
+          fi
+
+          if [ "${status}" -eq 1 ]; then
+            echo "::notice::npm-chck reports available updates (see log). Not a CI failure."
+          fi
 
   # =====================================================================
   # Required check summary — one status to gate merges / auto-merge on.
