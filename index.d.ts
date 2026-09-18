@@ -11,21 +11,10 @@ declare namespace NpmCheck {
   }
 
   type INpmCheckGetSetValues =
-    | "packages"
-    | "debug"
-    | "global"
-    | "cwd"
-    | "cwdPackageJson"
-    | "emoji";
+    "packages" | "debug" | "global" | "cwd" | "cwdPackageJson" | "emoji";
 
   type INpmVersionBumpType =
-    | "patch"
-    | "minor"
-    | "major"
-    | "prerelease"
-    | "build"
-    | "nonSemver"
-    | null;
+    "patch" | "minor" | "major" | "prerelease" | "build" | "nonSemver" | null;
 
   interface INpmCheckCurrentState {
     get: (key: INpmCheckGetSetValues) => INpmCheckPackage[];
