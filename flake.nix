@@ -37,7 +37,7 @@
 
             src = ./.;
 
-            npmDepsHash = "sha256-ndpO0yEokyaaia3jvGX2XIgwlMA4M0REGf83MM+s4r4=";
+            npmDepsHash = "sha256-t37JQJraVLj4iSTRUbmt2kBOCQ3WXHVyasE1CjFXfnw=";
 
             # No build step needed for this package
             npmBuildScript = "prepare";
