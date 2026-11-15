@@ -16,7 +16,7 @@ This project is a fork of [npm-check](https://github.com/dylang/npm-check) by Dy
 - Works on your globally installed packages too, via `-g`.
 - **Interactive Update** for less typing and fewer typos, via `-u`.
 - Supports public and private [@scoped/packages](https://docs.npmjs.com/getting-started/scoped-packages).
-- Supports ES6-style [`import from`](http://exploringjs.com/es6/ch_modules.html) syntax.
+- Supports ES6-style [`import from`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) syntax.
 - Upgrades your modules using your installed version of npm, including the new `npm@3`, so dependencies go where you expect them.
 - Works with any public npm registry, [private registries](https://www.npmjs.com/enterprise), and alternate registries like [Sinopia](https://github.com/rlidwka/sinopia).
 - Does not query registries for packages with `private: true` in their package.json.
