@@ -96,6 +96,17 @@ jobs:
       - name: Run flake pre-commit hooks
         run: nix build --no-link --print-build-logs .#checks.x86_64-linux.pre-commit-check
 
+      - name: Check links (online)
+        # The pre-commit-check above runs in the Nix sandbox, which has no
+        # network, so its lychee hook only checks local file links. Run the
+        # same pinned checker and shared config outside the sandbox so remote
+        # links are checked too.
+        env:
+          # Lets lychee use the GitHub API for github.com links instead of
+          # being rate limited.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: git ls-files -z '*.md' '*.mdx' | xargs -0 -r nix run --inputs-from . precommit-base#link-check --
+
   # =====================================================================
   # Flake package build — validates that npmDepsHash matches the current
   # lockfile and that the package builds. This is the gate that catches a
